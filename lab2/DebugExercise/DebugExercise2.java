@@ -14,7 +14,6 @@ public class DebugExercise2 {
 
     /** Returns the sum of a and b. Do not step into this function. */
     public static int add(int a, int b) {
-        int x = a, y = b;
         /* If you're stepping into this function, click the
            step out button because you're not going to learn anything. */
         return a + b ;
