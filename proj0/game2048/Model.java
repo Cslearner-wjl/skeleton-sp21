@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @wjl TODO: YOUR NAME HERE
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -106,14 +106,65 @@ public class Model extends Observable {
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
      * */
+
+    //将方块往上方的空格移动一格，使其紧凑，flag作为标签，判断是否需要上移补空
+    public int removeOnestep(int flag) {
+        flag = 0;
+        for (int col = 0; col< board.size(); col += 1){
+            for(int row = 2; row >= 0; row -= 1){
+                Tile t = board.tile(col, row);
+                if (board.tile(col, row)!= null) {
+                    if (board.tile(col, row + 1) == null) {
+                        board.move(col, row + 1, t);
+                        flag = 1;
+                    }
+                }
+            }
+        }
+        return flag;
+    }
+
+    //合并,boolean检测是否有合并
+    public boolean merge(){
+        int i = 0;
+        for (int col = 0; col< board.size(); col += 1){
+            for(int row = 2; row >= 0; row -= 1){
+                Tile t = board.tile(col, row);
+                if (board.tile(col, row)!= null && board.tile(col, row + 1) != null) {
+                    if (board.tile(col, row + 1).value() == board.tile(col, row).value() ) {
+                        board.move(col, row + 1, t);
+                        score += board.tile(col, row + 1).value();
+                        i = 1;
+                    }
+                }
+            }
+        }
+        if (i == 1) return true;
+        return false;
+    }
+
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
+        int flag = 0;
+        int score = 0;
 
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        board.setViewingPerspective(side);
+
+        flag = removeOnestep(flag);
+        while(flag == 1){
+            changed = true;
+            removeOnestep(flag);
+            flag = removeOnestep(flag);
+        }
+        changed = merge() || changed;
+        removeOnestep(flag);
+
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,6 +189,14 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        int size = b.size();
+        for(int row = 0; row < size; row++){
+            for(int col = 0; col < size; col++){
+                    if (b.tile(col, row) == null){
+                        return true;
+                    }
+            }
+        }
         return false;
     }
 
@@ -148,6 +207,13 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        for (int col = 0 ; col < b.size(); col++){
+            for (int row = 0 ; row < b.size(); row++){
+                if(b.tile(col, row)!=null && b.tile(col, row).value() == MAX_PIECE){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +225,23 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (emptySpaceExists(b)) return true;
+        for (int col = 0; col < b.size(); col += 1){
+            for (int row = 1; row < b.size(); row += 1){
+                if(b.tile(col, row).value() == b.tile(col, row - 1).value()) {
+                    return true;
+                }
+
+            }
+        }
+        for (int col1 = 1; col1 < b.size(); col1 += 1){
+            for (int row1 = 0; row1 < b.size(); row1 += 1){
+                if(b.tile(col1, row1).value() == b.tile(col1 - 1, row1).value()) {
+                    return true;
+                }
+
+            }
+        }
         return false;
     }
 
